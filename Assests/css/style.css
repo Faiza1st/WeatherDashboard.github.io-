@@ -4,7 +4,16 @@
     color: white;
 }
 
-.search {
+#searchForm {
     text-align: left;
     color: black;
+    display: flex;
+}
+
+#weatherInfo {
+    text-align: left;
+    position: relative;
+    margin-right: 30px;
+    padding-left: 25%;
+
 }
