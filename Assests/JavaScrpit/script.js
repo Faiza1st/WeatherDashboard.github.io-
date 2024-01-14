@@ -1,7 +1,9 @@
 const searchForm = document.getElementById('searchForm');
 const weatherInfo = document.getElementById('weatherInfo');
+const searchHistory = document.getElementById('searchHistory');
 // API key Insert 
 const apiKey = "86c3a0fb434b92670d7d224f638b19fe";
+const historyLimit = 5;
 
 // convert kelvin into fahrenheit
 function kToF(kelvin) {
@@ -13,6 +15,34 @@ function mpsToMph(mps) {
     return (mps * 2.23694).toFixed(2);
 }
 
+// Update the search history from the local storage 
+function updateSearchHistory(city) {
+    const existingHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
+    const uniqueHistory = [...new Set([city, ...existingHistory])];
+    const limitedHistory = uniqueHistory.slice(0, historyLimit);
+
+    localStorage.setItem('searchHistory', JSON.stringify(limitedHistory));
+    displaySearchHistory();
+}
+// Displays the search history from the local storage to the HTML Screach history element
+function displaySearchHistory() {
+    const historyItems = JSON.parse(localStorage.getItem('searchHistory')) || [];
+    searchHistory.innerHTML = '<p>Search History:</p>';
+    
+    historyItems.forEach(city => {
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        historyItem.textContent = city;
+        
+        // Add a click event listener to each history item
+        historyItem.addEventListener('click', () => {
+            getWeatherData(city);
+        });
+        
+        searchHistory.appendChild(historyItem);
+    });
+}
+
 function getWeatherData(city) {
     // Fetch current weather data from the website 
     fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`)
@@ -20,7 +50,6 @@ function getWeatherData(city) {
         .then(data => {
             // Display current weather from the data 
             displayWeather(data);
-
             // Fetch 5-day forecast data  from the website 
             return fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}`);
         })
@@ -28,6 +57,7 @@ function getWeatherData(city) {
         .then(forecastData => {
             // Display 5-day forecast from the data 
             displayForecast(forecastData);
+            updateSearchHistory(city);
         })
         // Display Error if user types something that is unsearchable
         .catch(error => {
@@ -35,6 +65,15 @@ function getWeatherData(city) {
             weatherInfo.innerHTML = 'Error in weather data';
         });
 }
+
+// Add a event listen to the submit button 
+searchForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const city = document.getElementById('searchInput').value;
+    getWeatherData(city);
+});
+
+displaySearchHistory();
 
 // Add a event listen to the submit button 
 searchForm.addEventListener('submit', function (e) {
@@ -58,7 +97,7 @@ function displayWeather(data) {
 
     const date = new Date();
 
-// DIsplay this in HTML
+    // DIsplay this in HTML
     const weatherHTML = `
         <h2>${cityName}, (${date.toDateString()})</h2>
         <p>Temperature: ${temperature} °F</p>
@@ -79,7 +118,6 @@ function displayForecast(forecastData) {
     const forecastContainer = document.getElementById('forecastContainer');
 
     const forecastHTML = `
-        <h3>5-Day Forecast:</h3>
         <!-- Include a loop here to display forecast for each day -->
         ${forecastData.list
             .filter(day => new Date(day.dt * 1000).getDate() > currentDate.getDate()) // Filter starting from the next day
@@ -90,7 +128,7 @@ function displayForecast(forecastData) {
 
                 return `
                     <div class="forecast-day">
-                        <p>Date: ${nextDay.toDateString()}</p>
+                        <p>${nextDay.toDateString()}</p>
                         <p>Temperature: ${kToF(day.main.temp)} °F</p>
                         <p>Description: ${day.weather[0].description}</p>
                         <p>Wind: ${mpsToMph(day.wind.speed)} MPH</p>
