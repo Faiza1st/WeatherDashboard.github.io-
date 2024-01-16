@@ -32,8 +32,12 @@ Weather API - https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lo
 ApiKey = "86c3a0fb434b92670d7d224f638b19fe"
 
 ## Images 
+./Assests/Images/Page1.png
+./Assests/Images/page2.png
+./Assests/Images/page3.png
 
 ## Deployed Link 
+https://faiza1st.github.io/WeatherDashboard.github.io-/
 
 
 ## License
